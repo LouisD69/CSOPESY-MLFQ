@@ -149,7 +149,56 @@ void mlfq(process P[], int nP, int nQ){
 			
 	*/
 	
-	 
+	 /* Pseudo Code:     note: not taken into account io burst interval (input J), di ko pa gets part na yan
+	ct = 0
+	sort processes by arrival time
+	create queues
+	sort queues by priority
+	
+	while complete < num_process 
+		while i < num_process && p[i].arrival <= ct && p[i].execution > 0
+			if p.arrival == ct
+				enqueue p[i] to highest priority queue
+			i++	
+			
+		loop through queues
+			currQ = highest prio queue index (0)
+			if prev >= 0 && p[prev].ioburst < queue[prev].quantum && p[prev].execution > 0
+				enqueue p[prev] to queue to same queue
+			else if prev >= 0 && p[prev].ioburst >= queue[prev].quantum && p[prev].execution > 0
+				enqueue p[prev] to queue one priority down	
+									
+			curr = dequeue 	
+		
+			check if job is ready
+		
+			if job is not ready, ct++, continue
+		
+			set start/end index 
+			get start time
+			get wait time
+		
+			if p[curr].exectuion >= q[currQ].quantum
+				adjust ct 
+				get end time
+				decrease execution of p[curr]	
+			else 
+				adjust wait time
+				adjust current time
+				get end time
+				decrease execution of p[curr]
+			
+			if(p[curr].execution <= 0)
+				complete++
+				
+			prev = curr
+			
+			if ct == prio boost
+				promote all to highest priority
+			
+			if q[currQ] is empty
+				move to queue one priority down		
+	*/
 	
 }
 
