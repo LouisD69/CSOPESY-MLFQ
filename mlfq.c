@@ -158,7 +158,56 @@ void mlfq(process P[], int nP, int nQ){
 			
 	*/
 	
-	 
+	 /* Pseudo Code:     note: not taken into account io burst interval (input J), di ko pa gets part na yan
+	ct = 0
+	sort processes by arrival time
+	create queues
+	sort queues by priority
+	
+	while complete < num_process 
+		while i < num_process && p[i].arrival <= ct && p[i].execution > 0
+			if p.arrival == ct
+				enqueue p[i] to highest priority queue
+			i++	
+			
+		loop through queues
+			currQ = highest prio queue index (0)
+			if prev >= 0 && p[prev].ioburst < queue[prev].quantum && p[prev].execution > 0
+				enqueue p[prev] to queue to same queue
+			else if prev >= 0 && p[prev].ioburst >= queue[prev].quantum && p[prev].execution > 0
+				enqueue p[prev] to queue one priority down	
+									
+			curr = dequeue 	
+		
+			check if job is ready
+		
+			if job is not ready, ct++, continue
+		
+			set start/end index 
+			get start time
+			get wait time
+		
+			if p[curr].exectuion >= q[currQ].quantum
+				adjust ct 
+				get end time
+				decrease execution of p[curr]	
+			else 
+				adjust wait time
+				adjust current time
+				get end time
+				decrease execution of p[curr]
+			
+			if(p[curr].execution <= 0)
+				complete++
+				
+			prev = curr
+			
+			if ct == prio boost
+				promote all to highest priority
+			
+			if q[currQ] is empty
+				move to queue one priority down		
+	*/
 	
 }
 
@@ -193,8 +242,8 @@ int main(){
 	/*
 	FILE *fptr;
 	Str100 filename; //filename can have max of 100 characters only
-	String abc, xyz;
-	int i, j, x, y, z;
+	String xys, abc_fghij;
+	int x, y, s, i, j, k;
 	
 	printf("Enter filename of text file: ");
 	scanf("%s", filename);
@@ -208,13 +257,13 @@ int main(){
 		
 		printf("File contents: \n");
 		
-		// Scan X, Y, Z from text file
-		fgets(xyz, 13, fptr);
-        //printf("%s", xyz);
+		// Scan X, Y, S from text file
+		fgets(xys, 13, fptr);
+        //printf("%s", xys);
         
-        // Split X, Y, Z
-		char *temp[3];
-		char *split = strtok(xyz, " ");
+        // Split X, Y, S
+		char *temp[5];
+		char *split = strtok(xys, " ");
 		i=0;
 		while(split != NULL){
 			temp[i] = split;
@@ -225,44 +274,49 @@ int main(){
 		
 		x = atoi(temp[0]);
 		y = atoi(temp[1]);
-		z = atoi(temp[2]);
-		printf("X: %d, Y: %d, Z: %d\n", x, y, z);	
+		s = atoi(temp[2]);
+		printf("X: %d, Y: %d, Z: %d\n", x, y, s);	
 		
-		// Scan Y lines of processes
+		// Scan X lines of queues
+		queue Q[x];
 		process P[y];
+		i = 0;
 		j = 0;
-		while(fgets(abc, 13, fptr) != NULL){
-			i = 0;
-			split = strtok(abc, " ");
+		while(fgets(abc_fghij, 21, fptr) != NULL){
+			//printf("%s\n", abc_fghij);
+			k = 0;
+			split = strtok(abc_fghij, " ");
 			while(split != NULL){
-				temp[i] = split;
-				//printf("%c ", *temp[i]);
+				temp[k] = split;
 				split = strtok(NULL, " ");
+				k++;
+			}
+			if(k < 4){ // Scan X lines of queues
+				queue q = {atoi(temp[0]), atoi(temp[1]), atoi(temp[2])};
+				Q[i] = q;
 				i++;
-			} 
-			process p = {atoi(temp[0]), atoi(temp[1]), atoi(temp[2])};
-			P[j] = p;
-			printProcess(P[j]);
-			j++;
+			}else{ // Scan Y lines of processes
+				process p = {atoi(temp[0]), atoi(temp[1]), atoi(temp[2]), atoi(temp[3]), atoi(temp[4])};
+				P[j] = p;
+				j++;
+			}	
 		}
-		printStar(STAR1);
-		printf("\n");
+		
 		fclose(fptr);
 		// Scan Completed
 		// Check Validity of first line input
-		if(checkValid(x, y, z) == 0){
+		if(checkValid(x, y) == 0){
 			printf("Program will now end.");
 			return 0;
 		}
 		
-		// Sorting
-		printf("Sorting by Arrival time........\n\n");
-		qsortByArrival(P, 0, y-1);
-		for(i=0; i<y; i++)
-			printProcess(P[i]);
-		printStar(STAR1);
-		
-		// Run mlfq 
+		for(i = 0; i < x; i++){
+			printf("Queue ID:%d, Priority:%d, Quantum:%d\n", Q[i].id, Q[i].priority, Q[i].quantum);
+		}
+		printf("\n");
+		for(i = 0; i < y; i++){
+			printf("Process ID:%d, Arrival:%d, Execution:%d, IO Burst Time:%d, IO Burst Interval:%d\n", P[i].id, P[i].arrival, P[i].execution, P[i].io_length, P[i].io_interval);
+		}
 	}
 	*/
 
