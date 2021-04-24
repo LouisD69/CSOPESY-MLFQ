@@ -128,24 +128,33 @@ float getAWT(int wt[], int n){
 }
 
 void mlfq(process P[], int nP, int nQ){
-	// foreground and background queue
-	 // initialize values
+	/*
+	// nP = num of processes
+	// nQ = num of Queues
 	
-	// int ct; // current time
+	// initialize the queues
+	Queue *Q[]; // array of queue pointers
+	for(i=0; i<nQ; i++)
+		createQueue(Q[i]);
 	
-	/* functions sample calls
 	
-		queue(foreQ, process1)
-		queue(foreQ, process[i]
-		process = dequeue(backQ);  returns the process that was removed from the queue
 	*/
-	
 	/* Algo
 	
 		P[] is already sorted
 		ct = 0
 		While not all process are completed
-			Enqueue all p with p.arrival = ct
+			Enqueue(Q[0], P[x]) if it has arrived
+			P[x].start = ct;
+			ct += quantum
+			P[x].end = ct;
+			
+			Process p = dequeue(Q[0])
+			if(P[x] has been completed)
+				dequeue(Q[0])
+			else
+				enqueue(Q[1], p)
+				
 			
 	*/
 	
