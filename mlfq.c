@@ -8,14 +8,64 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "process_queue.h"
-#include "print.h"
+//#include "intQueue.h"
+//#include "print.h"
 #define MAX 100
 #define STAR1 9
 #define STAR2 8
 
 typedef char String[13]; // arbitrary, increased to 13 in case all 3 inputs for a, b, c have 3 digits each.... ex. "100 100 100"
 typedef char Str100[101];
+
+typedef struct{
+    int id; // a
+	int priority; // b
+	int quantum; // c
+	int *elements;
+	int capacity;
+    int size;
+    int front;
+    int rear; 
+}queue;
+
+queue * createQueue(int id, int priority, int quantum, int maxElements){
+    /* Create a Queue */
+    queue *Q;
+    Q = (queue *)malloc(sizeof(queue));
+    /* Initialise its properties */
+    Q->id = id;
+    Q->priority = priority;
+    Q->quantum = quantum;
+    Q->elements = (int *)malloc(sizeof(int)*maxElements);
+    Q->size = 0;
+    Q->capacity = maxElements;
+    Q->front = 0;
+    Q->rear = -1;
+    /* Return the pointer */
+    return Q;
+}
+
+typedef struct{
+	int id; // f
+	int arrival; // g
+	int execution; // h (burst)
+	int io_length; // i
+	int io_interval; // j
+}process;
+
+int checkValid(int x, int y){
+	int isValid = 1; // 1 means true
+	if(x < 2 || x > 5){
+		printf("Invalid input, X must be 2 <= X <= 5.\n");
+		isValid = 0;
+	}
+	if(y < 3 || y > 100){
+		printf("Invalid input, Y must be 3 <= Y <= 100.\n");
+		isValid = 0;
+	}
+	
+	return isValid;
+}
 
 // =======================================================================
 // FUNCTIONS FOR PRINTING
@@ -112,6 +162,28 @@ void qsortByArrival(process P[], int left, int right){
 		qsortByArrival(P, pi+1, right);
 	}		
 	
+}
+
+void qsortByPriority(queue *Q[], int left, int right){	
+	int i = left;
+	int j = right;
+	queue *temp = Q[left];
+	if(left<right){
+		while(i<j){
+			while((Q[j])->priority <= (temp)->priority && i<j){
+				j--;
+			}
+			Q[i] = Q[j];
+			while((Q[i])->priority >= (temp)->priority && i<j){
+				i++;
+			}
+			Q[j] = Q[i];
+		}
+		Q[i] = temp;
+		
+		qsortByPriority(Q, left, i-1);
+		qsortByPriority(Q, j+1, right);	
+	}			
 }
 
 // =======================================================================
@@ -242,8 +314,7 @@ int main(){
 		printf("%s not found. Program will now end.", filename);
 		fclose(fptr);
 		return 0;
-	}
-	else{
+	}else{
 		fptr = fopen(filename, "r");
 		
 		printf("File contents: \n");
@@ -268,8 +339,8 @@ int main(){
 		s = atoi(temp[2]);
 		printf("X: %d, Y: %d, Z: %d\n", x, y, s);	
 		
-		// Scan X lines of queues
-		queue Q[x];
+		// Scan X lines of queues and Y lines of processes
+		queue *Q[x];
 		process P[y];
 		i = 0;
 		j = 0;
@@ -283,7 +354,7 @@ int main(){
 				k++;
 			}
 			if(k < 4){ // Scan X lines of queues
-				queue q = {atoi(temp[0]), atoi(temp[1]), atoi(temp[2])};
+				queue *q = createQueue(atoi(temp[0]), atoi(temp[1]), atoi(temp[2]), y);
 				Q[i] = q;
 				i++;
 			}else{ // Scan Y lines of processes
@@ -301,10 +372,12 @@ int main(){
 			return 0;
 		}
 		
+		qsortByPriority(Q, 0, x-1);
 		for(i = 0; i < x; i++){
-			printf("Queue ID:%d, Priority:%d, Quantum:%d\n", Q[i].id, Q[i].priority, Q[i].quantum);
+			printf("Queue ID:%d, Priority:%d, Quantum:%d\n", (Q[i])->id, (Q[i])->priority, (Q[i])->quantum);
 		}
 		printf("\n");
+		qsortByArrival(P, 0, y-1);
 		for(i = 0; i < y; i++){
 			printf("Process ID:%d, Arrival:%d, Execution:%d, IO Burst Time:%d, IO Burst Interval:%d\n", P[i].id, P[i].arrival, P[i].execution, P[i].io_length, P[i].io_interval);
 		}
