@@ -221,55 +221,66 @@ void mlfq(process P[], int nP, int nQ){
 			
 	*/
 	
-	 /* Pseudo Code:     note: not taken into account io burst interval (input J), di ko pa gets part na yan
-	ct = 0
-	sort processes by arrival time
-	create queues
-	sort queues by priority
+	 /* Pseudo Code:    
+	int ct = 0;
+	int curr = 0;
+	int complete = 0;
 	
-	while complete < num_process 
-		while i < num_process && p[i].arrival <= ct && p[i].execution > 0
-			if p.arrival == ct
-				enqueue p[i] to highest priority queue
-			i++	
+	int i = 0;
+	while(complete < y){
+		// enqueue newly arrived processes to highest priority queue
+		while(i < y && P[i].arrival <= ct && P[i].execution > 0){
+			enqueue(Q[0], i);
+			i++;
+		}
 			
-		loop through queues
-			currQ = highest prio queue index (0)
-			if prev >= 0 && p[prev].ioburst < queue[prev].quantum && p[prev].execution > 0
-				enqueue p[prev] to queue to same queue
-			else if prev >= 0 && p[prev].ioburst >= queue[prev].quantum && p[prev].execution > 0
-				enqueue p[prev] to queue one priority down	
-									
-			curr = dequeue 	
-		
-			check if job is ready
-		
-			if job is not ready, ct++, continue
-		
-			set start/end index 
-			get start time
-			get wait time
-		
-			if p[curr].exectuion >= q[currQ].quantum
-				adjust ct 
-				get end time
-				decrease execution of p[curr]	
-			else 
-				adjust wait time
-				adjust current time
-				get end time
-				decrease execution of p[curr]
-			
-			if(p[curr].execution <= 0)
-				complete++
+		// starting from highest priority queue that is not empty, perform rr on processes in queue
+		runningP = dequeue process at head of queue
+		if runningP != NULL
+			if runningP.remainingTimeOnQueue = -1
+				runningP.remainingTimeOnQueue = queue[curr].quantum
+			while runningP.execution > 0 && ctr < queue[curr].quantum && runningP.remainingTimeOnQueue > 0	
+				ctr += 1
+				runningP.remainingTimeOnQueue -= 1
+				runningP.execution -= 1
+				if runningP.execution == 0
+					complete += 1	
+				ct += 1
+				// enqueue newly arrived processes to highest priority queue
+				while(i < y && P[i].arrival <= ct && P[i].execution > 0){
+					enqueue(Q[0], i);
+					i++;
+				}
 				
-			prev = curr
+				Sctr += 1 // to check if ready for priority boost
+				if runningP.totalRunTime % ioInterval = 0 && runningP.totalRunTime != 0
+					give up cpu = true
+					runningP.remainingTimeOnQueue -= ctr
+					update st, et, wt, ioTime accordingly
+					enqueue runningP to current queue	
+		
+			if give up cpu = false	
+				update st, et, wt accordingly
 			
-			if ct == prio boost
-				promote all to highest priority
+			if runningP.execution > 0 && queue[curr] != queue[x-1] // not at lowest priority level
+				runningP.remainingTimeOnQueue = -1
+				enqueue runningP to queue one priority level lower
+			else
+				runningP.remainingTimeOnQueue = -1
+				enqueue runningP to current queue		
 			
-			if q[currQ] is empty
-				move to queue one priority down		
+			if Sctr == s // priority boost
+				dequeue all processes from all queues
+				enqueue all dequeued processes to highest priority queue // queue[curr] = queue[0]	
+
+			check for highest priority queue that is not empty
+				queue[curr] = set to highest priority queue that is not empty
+				
+		else 
+			ct +=1
+			Sctr += 1		
+	} 
+			
 	*/
 	
 }
