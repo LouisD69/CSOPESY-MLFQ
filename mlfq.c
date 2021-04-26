@@ -269,7 +269,8 @@ void mlfq(process P[], int nP, int nQ){
 				runningP.remainingTimeOnQueue = -1
 				enqueue runningP to current queue		
 			
-			if Sctr == s // priority boost
+			if Sctr >= s // priority boost
+				Sctr = 0
 				dequeue all processes from all queues
 				enqueue all dequeued processes to highest priority queue // queue[curr] = queue[0]	
 
