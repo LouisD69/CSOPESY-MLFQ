@@ -126,6 +126,28 @@ void mSortByArrival(process P[], int l, int r)
     }
 }
 
+void qsortByPriority(queue *Q[], int left, int right){	
+	int i = left;
+	int j = right;
+	queue *temp = Q[left];
+	if(left<right){
+		while(i<j){
+			while((Q[j])->priority <= (temp)->priority && i<j){
+				j--;
+			}
+			Q[i] = Q[j];
+			while((Q[i])->priority >= (temp)->priority && i<j){
+				i++;
+			}
+			Q[j] = Q[i];
+		}
+		Q[i] = temp;
+		
+		qsortByPriority(Q, left, i-1);
+		qsortByPriority(Q, j+1, right);	
+	}			
+}
+
 // =======================================================================
 // FUNCTIONS FOR SCHEDULING
 // =======================================================================
@@ -500,8 +522,7 @@ int main(){
 		printf("%s not found. Program will now end.", filename);
 		fclose(fptr);
 		return 0;
-	}
-	else{
+	}else{
 		fptr = fopen(filename, "r");
 		
 		printf("File contents: \n");
