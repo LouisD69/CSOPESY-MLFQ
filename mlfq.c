@@ -545,7 +545,7 @@ int main(){
 		x = atoi(temp[0]);
 		y = atoi(temp[1]);
 		s = atoi(temp[2]);
-		printf("X: %d, Y: %d, Z: %d\n", x, y, s);	
+		printf("X: %d, Y: %d, S: %d\n", x, y, s);	
 		
 		// Scan X lines of queues
 		pQueue Q[x];
