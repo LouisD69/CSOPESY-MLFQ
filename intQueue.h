@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #define DEBUG 0
 
 typedef struct Queue
@@ -74,6 +75,9 @@ void enqueue(Queue *Q, int data)
     {
         Q->size++;
         Q->tail = Q->tail + 1;
+        
+        if(DEBUG)	
+            printf("Enqueuing %d \n", data);
 
         if(Q->tail == Q->capacity) 
         {
@@ -82,4 +86,31 @@ void enqueue(Queue *Q, int data)
        
         Q->arr[Q->tail] = data; // insert     
     }
+}
+
+int len(Queue *Q)
+{
+	return Q->size;
+}
+
+bool isEmpty(Queue *Q)
+{
+	bool b = false;
+	if(Q->size == 0)
+		b = true;
+	
+	return b;
+}
+
+void printQ(Queue *Q)
+{
+	int i, d;
+	int n = Q->size;
+	for(i=0; i<n; i++)
+	{
+		d = dequeue(Q);
+		printf("%d ", d);
+		enqueue(Q, d);
+	}
+	printf("\n\n");
 }
