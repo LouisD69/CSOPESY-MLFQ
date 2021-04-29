@@ -126,28 +126,6 @@ void mSortByArrival(process P[], int l, int r)
     }
 }
 
-void qsortByPriority(queue *Q[], int left, int right){	
-	int i = left;
-	int j = right;
-	queue *temp = Q[left];
-	if(left<right){
-		while(i<j){
-			while((Q[j])->priority <= (temp)->priority && i<j){
-				j--;
-			}
-			Q[i] = Q[j];
-			while((Q[i])->priority >= (temp)->priority && i<j){
-				i++;
-			}
-			Q[j] = Q[i];
-		}
-		Q[i] = temp;
-		
-		qsortByPriority(Q, left, i-1);
-		qsortByPriority(Q, j+1, right);	
-	}			
-}
-
 // =======================================================================
 // FUNCTIONS FOR SCHEDULING
 // =======================================================================
@@ -156,8 +134,8 @@ float getAWT(int wt[], int n){
 	int i, twt=0;
 	for(i = 0; i < n; i++)
 		twt += wt[i];
-	
-	awt = (float) twt / n;
+	awt = twt * 1.0;
+	awt = awt / n;
 	return awt;
 }
 
@@ -178,7 +156,7 @@ void mlfq(process P[], pQueue q[], int nQ, int nP, int z, int boostTime){
 	int currIO; // current process in IO
 	int boostCount = 0; // number of times priority boosting was done
 	float awt; // ave waiting time
-	bool jobReady, resumeFromIO;
+	bool jobReady, resumeFromIO, switchToHigh;
 	Queue *ioQ[nQ]; // intQueue for IO
 	Queue *Q[nQ]; // intQueue for CPU
 	
@@ -208,19 +186,17 @@ void mlfq(process P[], pQueue q[], int nQ, int nP, int z, int boostTime){
 	// initialize completed IO burst for each process
 	for(i=0;i<nP; i++)
 		ioc[i] = 0;
-	
-	if(debug)
-		printf("Initialize Done \n");
 		
-	i=0;
+	i=0; // ith process in P[]
 	while(done < nP) // while total completed processes < done total processes
 	{
-		level = 0;
+		level = 0; // start at topmost
 		resumeFromIO = false; // to signal if a process from Higher Queue is returning from IO 
-		
+		switchToHigh = false; // to signal if switch to a process with higher priority
 		while(i<nP && P[i].arrival <= ct && P[i].completed < P[i].execution)
 		{ // enqueue all processes that have arrived
-			enqueue(Q[level], i);
+			enqueue(Q[level], i); // enqueue at topmost
+			if(debug) printf("[ENQUEUE] Enqueue at topmost: PID: %d \n", P[i].id);
 			i++;
 		}
 		
@@ -231,8 +207,10 @@ void mlfq(process P[], pQueue q[], int nQ, int nP, int z, int boostTime){
 		
 		if(debug)
 		{
-			printf("Current Time: %d, Current Process PID: %d, at Level: %d \n", ct, P[curr].id, level);
-			printf("PID: %d		Completed: %d	Execution: %d\n", P[curr].id, P[curr].completed, P[curr].execution);
+			printf("Current Time: %d\n", ct);
+			printf("Current Process PID: %d, at Level: %d \n", P[curr].id, level);
+			printf("Completed: %d	Execution: %d\n", P[curr].completed, P[curr].execution);
+			printf("=================================================\n");
 		}
 			
 		if(curr < 0)
@@ -293,12 +271,48 @@ void mlfq(process P[], pQueue q[], int nQ, int nP, int z, int boostTime){
 			ct++; // time passes by 
 			P[curr].completed++; // process completes 1 ms
 			P[curr].relCompleted++; // process completes 1 ms out of the allotted quantum
+			
 			if(debug)
 			{
-				printf("CT: %d,  Process PID: %d IS RAN for 1ms\n", ct, P[curr].id);
-				printf("PID: %d		Completed: %d	Execution: %d\n", P[curr].id, P[curr].completed, P[curr].execution);
-				printf("=============================\n");	
+				printf("Current Time: %d\n", ct);
+				printf("[RUN] Process runs for 1ms \n");
+				printf("Current Process PID: %d, at Level: %d \n", P[curr].id, level);
+				printf("Completed: %d	Execution: %d\n", P[curr].completed, P[curr].execution);
+				printf("=================================================\n");
 			}
+			// check the queue again
+			while(i<nP && P[i].arrival <= ct && P[i].completed < P[i].execution)
+			{ // enqueue all processes that have arrived
+				enqueue(Q[0], i);
+				if(debug) printf("[ENQUEUE] Enqueue at topmost: PID: %d \n", P[i].id);
+				i++;
+				switchToHigh = true;
+			}
+			if(switchToHigh)
+			{
+				enqueue(Q[level], curr);
+				break;
+			}
+				
+			// check if there are higher priority processes
+			int levelCheck;
+			levelCheck = 0; // start by checking the highest queue
+			while(levelCheck < level)
+			{
+				if(!isEmpty(Q[levelCheck]))
+				{
+					if(debug) printf("Switching to a newly arrived process \n");
+					enqueue(Q[level], curr); // pre-empt the current process
+					P[curr].relCompleted = 0; // reset quantum used because moving to another queue
+					resumeFromIO = true; // high prio process came from IO
+					break; // high priority process must be executed now
+				}
+				else
+					levelCheck++;
+			}
+		
+			if(resumeFromIO)
+				break; // break out of loop to run the high prio process in next iter
 			
 			if(P[curr].completed == P[curr].execution)
 				break; // break if the loop completes its full execution	
@@ -314,36 +328,11 @@ void mlfq(process P[], pQueue q[], int nQ, int nP, int z, int boostTime){
 			}
 			
 			if(P[curr].relCompleted == q[level].quantum)
-				break; // break if the process completes the quantum
-
-			
-			// check if there are higher priority processes
-			int levelCheck;
-			levelCheck = 0; // start by checking the highest queue
-			while(levelCheck < level)
-			{
-				if(!isEmpty(Q[levelCheck]))
-				{
-					if(debug) printf("Queue is empty \n");
-					enqueue(Q[level], curr); // pre-empt the current process
-					P[curr].relCompleted = 0; // reset quantum used because moving to another queue
-					resumeFromIO = true; // high prio process came from IO
-					break; // high priority process must be executed now
-				}
-				else
-					levelCheck++;
-			}
-		
-			if(resumeFromIO)
-				break; // break out of loop to run the high prio process in next iter
-				
+				break; // break if the process completes the quantum		
 		}
 			
-		et[curr][sei[curr]] = ct; // end CPU time // This line will always run
+		et[curr][sei[curr]] = ct; // record end CPU time // This line will always run
 		
-		if(resumeFromIO)
-			continue; // continue the outermost loop to enqueue the high prio process
-
 		if(P[curr].completed < P[curr].execution && P[curr].relCompleted == q[level].quantum)
 		// if process completes the quantum but not the full exec
 		{
@@ -368,19 +357,23 @@ void mlfq(process P[], pQueue q[], int nQ, int nP, int z, int boostTime){
 
 			if(debug)
 			{
+				printf("CT: %d \n", ct);
 				printf("Moving To or Staying at Lowest Queue\n");
-				printf("CT: %d	Level: %d\n", ct, level);
-				printf("PID: %d		Completed: %d	Execution: %d\n", P[curr].id, P[curr].completed, P[curr].execution);	
+				printf("Current Process PID: %d, at Level: %d \n", P[curr].id, level);
+				printf("Completed: %d	Execution: %d\n", P[curr].completed, P[curr].execution);
+				printf("=================================================\n");	
 			}
 		}
-		else if(P[curr].completed < P[curr].execution && P[curr].completed % q[level].quantum !=0)
-		// if process is not complete and will not go to IO, just proceed to next iter basically
-		{
+		else if(P[curr].completed < P[curr].execution && P[curr].relCompleted < q[level].quantum)
+		// if process is not complete nor finishes the time quantum, continue to next iter of outerloop
+		{	
 			if(debug)
 			{
+				printf("CT: %d \n", ct);
 				printf("Process PID: %d will return to queue after IO\n", P[curr].id);
-				printf("CT: %d	Level: %d\n", ct, level);
-				printf("PID: %d		Completed: %d	Execution: %d\n", P[curr].id, P[curr].completed, P[curr].execution);	
+				printf("Current Process PID: %d, at Level: %d \n", P[curr].id, level);
+				printf("Completed: %d	Execution: %d\n", P[curr].completed, P[curr].execution);
+				printf("=================================================\n");	
 			}
 		}
 		else // process was completed 
@@ -409,7 +402,12 @@ void mlfq(process P[], pQueue q[], int nQ, int nP, int z, int boostTime){
 				printf("Priority Boosting!!!!\n");
 				printQ(Q[0]); // prints the contents of the queue
 			}
-		}		
+		}	
+		
+		if(switchToHigh)
+			continue;
+		if(resumeFromIO)
+			continue; // continue the outermost loop to enqueue the high prio process	
 	}
 	
 	for(x=0; x<nP; x++) // compute turnaround time
@@ -501,7 +499,7 @@ void mlfq(process P[], pQueue q[], int nQ, int nP, int z, int boostTime){
 	}
 	printStar(STAR2);
 	setColor(14);
-	printf("Average waiting time: %.1f\n\n", awt);
+	printf("Average waiting time: %.2f\n\n", awt);
 	resetColor();
 	printf("Scheduling Task Completed.\n");
 
