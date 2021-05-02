@@ -40,18 +40,3 @@ void printVDivider(int n){ // prints alternate vertical divider
 }
 
 
-int checkValid(int x, int y){
-	int isValid = 1; // 1 means true
-	if(x < 0 || x > 3){
-		printf("Invalid input, X must be 2 <= X <= 5.\n");
-		isValid = 0;
-	}
-	if(y < 3 || y > 100){
-		printf("Invalid input, Y must be 3 <= Y <= 100.\n");
-		isValid = 0;
-	}
-	
-	return isValid;
-}
-
-

@@ -592,16 +592,7 @@ int main(){
 				}
 			}
 		}		
-//		for(i = 0; i < x; i++){
-//			printf("Queue ID:%d, Priority:%d, Quantum:%d\n", Q[i].id, Q[i].priority, Q[i].quantum);
-//		}
-
-//		printf("\n");
-//		for(i = 0; i < y; i++){
-//			printf("Process ID:%d, Arrival:%d, Execution:%d, IO Burst Time:%d, IO Burst Interval:%d, IO Completed:%d\n", 
-//			P[i].id, P[i].arrival, P[i].execution, P[i].io_length, P[i].io_interval,  P[i].completed);
-//		}
-
+		
 		mSortByArrival(P, 0, y-1); // sort processes by arrival
 		for(i=0; i<x; i++)
 			printQueue(Q[i]);
